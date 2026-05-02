@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "repo-manager": {
+      "command": "C:\\Users\\JuziD\\proj\\mutiAgent\\RepoManager.exe",
+      "args": [
+        "--stdio-bridge"
+      ]
+    }
+  }
+}

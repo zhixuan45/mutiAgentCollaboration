@@ -1,0 +1,3 @@
+C:\Users\JuziD\proj\mutiAgent\mcp\RepoManager\bin\Release\net8.0\win-x64\publish\RepoManager.pdb
+C:\Users\JuziD\proj\mutiAgent\mcp\RepoManager\bin\Release\net8.0\win-x64\publish\aspnetcorev2_inprocess.dll
+C:\Users\JuziD\proj\mutiAgent\mcp\RepoManager\bin\Release\net8.0\win-x64\publish\RepoManager.exe
