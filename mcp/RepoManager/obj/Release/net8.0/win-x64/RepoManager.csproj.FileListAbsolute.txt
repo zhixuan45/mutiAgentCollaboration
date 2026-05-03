@@ -345,3 +345,4 @@ C:\Users\JuziD\proj\mutiAgent\mcp\RepoManager\obj\Release\net8.0\win-x64\refint\
 C:\Users\JuziD\proj\mutiAgent\mcp\RepoManager\obj\Release\net8.0\win-x64\RepoManager.pdb
 C:\Users\JuziD\proj\mutiAgent\mcp\RepoManager\obj\Release\net8.0\win-x64\RepoManager.genruntimeconfig.cache
 C:\Users\JuziD\proj\mutiAgent\mcp\RepoManager\obj\Release\net8.0\win-x64\ref\RepoManager.dll
+C:\Users\JuziD\proj\mutiAgent\mcp\RepoManager\obj\Release\net8.0\win-x64\RepoManager.sourcelink.json

@@ -38,4 +38,50 @@
 *   `release_lock(filepath)`: 释放文件的修改权限。
 
 ---
+
+## 🧠 任务调度系统（v2.0 新增）
+
+除了文件锁，RepoManager 现在还内置了一个**队长-队员任务调度总线**。
+
+### 工作流程
+
+```
+用户 → 队长AI(Gemini) → create_task × N → 任务池
+                      → spawn_worker(qwen/gemini) → 队员进程
+队员AI ← poll_my_task ← 任务池
+队员AI → 执行 + acquire_lock → 提交
+队员AI → update_task(done)
+队长AI → review_task → 通过 or 打回重做
+```
+
+### 任务调度 MCP 工具
+
+| 工具 | 调用方 | 说明 |
+|------|--------|------|
+| `create_task` | 队长 | 创建子任务，指定角色 |
+| `poll_my_task` | 队员 | 按角色名领取任务 |
+| `update_task` | 队员 | 上报完成/失败 |
+| `review_task` | 队长 | 审查通过或打回 |
+| `list_all_tasks` | 任何 | 查看任务看板 |
+| `spawn_worker` | 队长 | 自动启动 qwen/gemini 队员进程 |
+
+### 控制台指令（在 RepoManager 黑窗口中输入）
+
+| 指令 | 说明 |
+|------|------|
+| `/help` | 查看所有指令 |
+| `/tasks` | 打印任务看板 |
+| `/locks` | 查看所有文件锁 |
+| `/workers` | 查看运行中的队员进程 |
+| `/save [file]` | 保存任务+锁状态到 JSON |
+| `/load [file]` | 从 JSON 恢复状态 |
+| `/clear-locks` | 强制清除所有锁（紧急用）|
+| `/kill <pid>` | 终止指定队员进程 |
+
+### 配套 Skill 文件
+
+- `skills/orchestrator/SKILL.md`：队长操作规程（加载给 Gemini CLI）
+- `skills/worker/SKILL.md`：队员操作规程（加载给 Qwen/Gemini CLI）
+
+---
 *设计初衷详见根目录下的 [doc.md](doc.md)*

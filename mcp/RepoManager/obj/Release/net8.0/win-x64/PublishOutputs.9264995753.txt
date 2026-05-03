@@ -1,0 +1,3 @@
+C:\Users\JuziD\proj\publish\RepoManager.pdb
+C:\Users\JuziD\proj\publish\aspnetcorev2_inprocess.dll
+C:\Users\JuziD\proj\publish\RepoManager.exe
