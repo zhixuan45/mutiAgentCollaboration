@@ -33,7 +33,7 @@ namespace RepoManager
     {
         public int Pid { get; set; }
         public string RoleName { get; set; } = "";
-        public string CliType { get; set; } = "gemini"; // 固定使用 gemini
+        public string CliType { get; set; } = "gemini";
         public DateTime StartedAt { get; set; } = DateTime.UtcNow;
     }
 
@@ -155,10 +155,9 @@ namespace RepoManager
 
         // ---------- 子进程管理 ----------
 
-        /// <summary>派生队员子进程（仅支持 gemini CLI），工作目录跟随队长</summary>
+        /// <summary>派生队员子进程（默认交互模式），工作目录跟随队长</summary>
         public static string SpawnWorker(string roleName, string taskId, string mcpUrl, string workingDir)
         {
-            // 验证工作目录是否存在，不存在则回退到当前进程目录
             if (string.IsNullOrWhiteSpace(workingDir) || !Directory.Exists(workingDir))
             {
                 var fallback = Directory.GetCurrentDirectory();
@@ -166,7 +165,6 @@ namespace RepoManager
                 workingDir = fallback;
             }
 
-            // 构造注入给队员的系统提示
             var systemPrompt =
                 $"You are a worker agent with role [{roleName}] in a multi-agent system. " +
                 $"Your task ID to work on is [{taskId}]. " +
@@ -177,12 +175,12 @@ namespace RepoManager
 
             try
             {
-                // 只支持 gemini CLI，使用 -p 无头模式
-                var psi = new ProcessStartInfo("gemini", $"-p \"{systemPrompt}\"")
+                // 以默认交互模式启动 gemini，传入 systemPrompt 作为第一句话
+                var psi = new ProcessStartInfo("gemini", $"\"{systemPrompt}\"")
                 {
-                    UseShellExecute = true,   // 开新终端窗口，方便观察
+                    UseShellExecute = true,
                     CreateNoWindow = false,
-                    WorkingDirectory = workingDir // 关键：设置工作目录
+                    WorkingDirectory = workingDir
                 };
 
                 var process = Process.Start(psi)
@@ -197,12 +195,60 @@ namespace RepoManager
                 Workers[process.Id] = worker;
 
                 LogTask($"[SPAWN ✅] gemini 队员已启动 PID={process.Id} role={roleName} dir={workingDir}", ConsoleColor.Green);
-                return $"Success: gemini 队员进程已启动，PID={process.Id}，角色={roleName}，工作目录={workingDir}";
+                return $"Success: gemini 队员进程已在默认模式下启动，PID={process.Id}，角色={roleName}，工作目录={workingDir}";
             }
             catch (Exception ex)
             {
                 LogTask($"[SPAWN ❌] 启动 gemini 失败: {ex.Message}", ConsoleColor.Red);
                 return $"Error: 启动 gemini 队员失败 → {ex.Message}。请确认 gemini CLI 已安装并在 PATH 中。";
+            }
+        }
+
+        /// <summary>通过 VBScript 模拟键盘输入向运行中的队员追加提示词</summary>
+        public static string SendWorkerPrompt(string roleName, string prompt)
+        {
+            var worker = Workers.Values.FirstOrDefault(w => w.RoleName == roleName);
+            if (worker == null) return $"Error: 未找到角色为 {roleName} 的运行中队员";
+
+            try
+            {
+                // VBScript SendKeys 转义
+                var specialChars = new[] { '+', '^', '%', '~', '(', ')', '[', ']', '{', '}' };
+                var escaped = new System.Text.StringBuilder();
+                foreach (var c in prompt)
+                {
+                    if (specialChars.Contains(c)) escaped.Append("{").Append(c).Append("}");
+                    else if (c == '"') escaped.Append("\"\""); // 转义双引号
+                    else escaped.Append(c);
+                }
+
+                var vbsPath = Path.Combine(Path.GetTempPath(), $"poke_{Guid.NewGuid():N}.vbs");
+                var vbsCode = $@"
+Set WshShell = WScript.CreateObject(""WScript.Shell"")
+success = WshShell.AppActivate({worker.Pid})
+If success Then
+    WScript.Sleep 500
+    WshShell.SendKeys ""{escaped}""
+    WScript.Sleep 100
+    WshShell.SendKeys ""~""
+End If
+";
+                File.WriteAllText(vbsPath, vbsCode);
+                var psi = new ProcessStartInfo("cscript", $"//nologo \"{vbsPath}\"")
+                {
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+                var proc = Process.Start(psi);
+                proc?.WaitForExit();
+                File.Delete(vbsPath);
+
+                LogTask($"[PROMPT] 已向 {roleName} 注入提示词", ConsoleColor.Cyan);
+                return $"Success: 已成功唤醒窗口并向 {roleName} (PID={worker.Pid}) 发送了提示词";
+            }
+            catch (Exception ex)
+            {
+                return $"Error: 发送提示词失败 → {ex.Message}";
             }
         }
 
@@ -302,7 +348,7 @@ namespace RepoManager
                 case "/workers":
                     if (Workers.IsEmpty) Console.WriteLine("没有运行中的队员进程");
                     else foreach (var w in Workers.Values)
-                        Console.WriteLine($"⚙️ PID={w.Pid} role={w.RoleName} cli={w.CliType} 启动于={w.StartedAt:HH:mm:ss}");
+                        Console.WriteLine($"⚙️ PID={w.Pid} role={w.RoleName} 启动于={w.StartedAt:HH:mm:ss}");
                     return true;
 
                 case "/help":
@@ -390,7 +436,7 @@ namespace RepoManager
                 },
                 new {
                     name = "spawn_worker",
-                    description = "【队长专用】自动派生一个 gemini CLI 队员进程。working_dir 必须传入你自己的当前工作目录，队员进程会 cd 到该目录后启动，确保能读取项目文件。",
+                    description = "【队长专用】自动派生一个 gemini CLI 队员进程。队员将在默认交互模式下启动（有完整的 MCP 工具）。",
                     inputSchema = new {
                         type = "object",
                         properties = new {
@@ -400,6 +446,18 @@ namespace RepoManager
                             mcp_url      = new { type = "string", description = "MCP 服务器地址，默认 http://localhost:5000" }
                         },
                         required = new[] { "role_name", "working_dir" }
+                    }
+                },
+                new {
+                    name = "send_worker_prompt",
+                    description = "【队长专用】向已经启动的队员控制台注入一条提示词。常用于在任务打回或分配新任务后唤醒队员。",
+                    inputSchema = new {
+                        type = "object",
+                        properties = new {
+                            role_name    = new { type = "string", description = "你要唤醒的队员角色名" },
+                            prompt       = new { type = "string", description = "提示词内容。强烈建议只使用纯英文（如 'Task rejected, please poll again' 或 'Please continue'），以防止中文输入法导致的乱码。" }
+                        },
+                        required = new[] { "role_name", "prompt" }
                     }
                 }
             };
@@ -452,6 +510,13 @@ namespace RepoManager
                     var taskId     = argsEl.TryGetProperty("task_id", out var tid) ? tid.GetString()! : "";
                     var mcpUrl     = argsEl.TryGetProperty("mcp_url", out var mu) ? mu.GetString()! : "http://localhost:5000";
                     return SpawnWorker(roleName, taskId, mcpUrl, workingDir);
+                }
+
+                case "send_worker_prompt":
+                {
+                    var roleName = argsEl.GetProperty("role_name").GetString()!;
+                    var prompt   = argsEl.GetProperty("prompt").GetString()!;
+                    return SendWorkerPrompt(roleName, prompt);
                 }
             }
             return null; // 不是任务相关工具

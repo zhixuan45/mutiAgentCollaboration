@@ -58,6 +58,8 @@ spawn_worker(
 
 ### 第五步：审查结果
 
+### 第五步：审查结果
+
 当任务状态变为 `done` 时，调用 `review_task`：
 
 ```
@@ -71,6 +73,17 @@ review_task(
 **审查标准**：
 - 任务结果摘要是否回答了 description 中所有要求？
 - 有没有提到明显的错误或跳过验收标准？
+
+如果 `review_task` 打回了任务，**或者**你创建了一个分配给现有队员的新任务，由于队员可能处于空闲等待状态，你**必须**调用 `send_worker_prompt` 来唤醒该队员。
+
+```
+send_worker_prompt(
+  role_name = "backend_dev",
+  prompt    = "Please poll again"  # 强烈建议只用纯英文
+)
+```
+
+这个工具会自动激活队员的控制台并向它发送这个提示词，队员收到后就会重新激活并拉取新任务或重做。
 
 ### 第六步：收尾汇报
 

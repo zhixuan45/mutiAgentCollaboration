@@ -63,7 +63,8 @@
 | `update_task` | 队员 | 上报完成/失败 |
 | `review_task` | 队长 | 审查通过或打回 |
 | `list_all_tasks` | 任何 | 查看任务看板 |
-| `spawn_worker` | 队长 | 自动启动 qwen/gemini 队员进程 |
+| `spawn_worker` | 队长 | 自动启动 gemini 队员进程 |
+| `send_worker_prompt` | 队长 | 唤醒空闲队员，发送提示词 |
 
 ### 控制台指令（在 RepoManager 黑窗口中输入）
 
