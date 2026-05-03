@@ -41,12 +41,14 @@ create_task(
 
 ```
 spawn_worker(
-  role_name = "backend_dev",    # 与 create_task 的 assignee_role 一致
-  cli_type  = "qwen",           # 或 "gemini"
-  task_id   = "xxx",            # 可选，告知优先处理的任务
-  mcp_url   = "http://localhost:5000"
+  role_name   = "backend_dev",         # 与 create_task 的 assignee_role 一致
+  working_dir = "<你当前的工作目录>",   # 【必填】队员进程会 cd 到这里再启动
+  task_id     = "xxx",                 # 可选，告知优先处理的任务
+  mcp_url     = "http://localhost:5000"
 )
 ```
+
+> **如何获取工作目录**：在调用 `spawn_worker` 前，先用 shell 工具执行 `pwd`（Linux/Mac）或 `cd`（Windows），将输出的路径填入 `working_dir`。这样队员会与你在同一个项目目录下工作。
 
 如果 `spawn_worker` 返回错误，**必须立刻向用户说明原因**，不要静默失败。
 
