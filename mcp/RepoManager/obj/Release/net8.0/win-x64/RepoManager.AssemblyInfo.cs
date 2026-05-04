@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("RepoManager")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+25358a8bfb49995a606c39172a7f9b0fcd14bc6e")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+25e91ea93661a51c24ae5aa82c7f5d479db8dacd")]
 [assembly: System.Reflection.AssemblyProductAttribute("RepoManager")]
 [assembly: System.Reflection.AssemblyTitleAttribute("RepoManager")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
