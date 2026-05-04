@@ -21,3 +21,4 @@ C:\Users\JuziD\proj\mutiAgent\mcp\RepoManager\obj\Debug\net8.0\staticwebassets\m
 C:\Users\JuziD\proj\mutiAgent\mcp\RepoManager\obj\Debug\net8.0\staticwebassets\msbuild.buildTransitive.RepoManager.props
 C:\Users\JuziD\proj\mutiAgent\mcp\RepoManager\obj\Debug\net8.0\staticwebassets.pack.json
 C:\Users\JuziD\proj\mutiAgent\mcp\RepoManager\obj\Debug\net8.0\scopedcss\bundle\RepoManager.styles.css
+C:\Users\JuziD\proj\mutiAgent\mcp\RepoManager\obj\Debug\net8.0\RepoManager.sourcelink.json

@@ -153,6 +153,19 @@ namespace RepoManager
             return string.Join("\n", lines);
         }
 
+        /// <summary>获取极简任务进度摘要（节省 Token）</summary>
+        public static string GetTaskSummary()
+        {
+            if (Tasks.IsEmpty) return "任务池为空";
+            int total = Tasks.Count;
+            int pending = Tasks.Values.Count(t => t.Status == TaskStatus.Pending);
+            int inProgress = Tasks.Values.Count(t => t.Status == TaskStatus.InProgress);
+            int done = Tasks.Values.Count(t => t.Status == TaskStatus.Done);
+            int failed = Tasks.Values.Count(t => t.Status == TaskStatus.Failed);
+            
+            return $"进度概览: 总计 {total} | ⏳ 待处理 {pending} | 🔄 进行中 {inProgress} | ✅ 已完成 {done} | ❌ 失败 {failed}";
+        }
+
         // ---------- 子进程管理 ----------
 
         /// <summary>派生队员子进程（默认交互模式），工作目录跟随队长</summary>
@@ -459,6 +472,14 @@ End If
                         },
                         required = new[] { "role_name", "prompt" }
                     }
+                },
+                new {
+                    name = "get_task_status_summary",
+                    description = "【队长专用】获取极简的任务进度摘要，用于节省 Token 消耗。",
+                    inputSchema = new {
+                        type = "object",
+                        properties = new { },
+                    }
                 }
             };
         }
@@ -518,6 +539,9 @@ End If
                     var prompt   = argsEl.GetProperty("prompt").GetString()!;
                     return SendWorkerPrompt(roleName, prompt);
                 }
+
+                case "get_task_status_summary":
+                    return GetTaskSummary();
             }
             return null; // 不是任务相关工具
         }
